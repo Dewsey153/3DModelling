@@ -1,0 +1,43 @@
+import bpy
+import bmesh
+import math
+import mathutils
+
+
+
+mesh = bpy.data.meshes.new("Tetrahedron")
+bm = bmesh.new()
+
+def oncircle(a, r):
+    return mathutils.Vector((r*math.sin(a), r*math.cos(a),0))
+def TetrahedronPlacer(x, y):
+
+    
+
+    v1 = bm.verts.new((x+0.5,y+(-0.5), 0))
+    v2 = bm.verts.new((x+0.5, y+0.5, 0))
+    v3 = bm.verts.new((x+(-0.5), y+0, 0))
+    v4 = bm.verts.new((x+0, y+0, 1))
+
+    bm.faces.new((v1,v2,v3))
+    bm.faces.new((v4,v2,v3))
+    bm.faces.new((v1,v4,v3))
+    bm.faces.new((v1,v2,v4))
+
+
+    
+
+
+for i in range(10000):
+    a = i * (math.pi/5000)
+    v = oncircle(a, 15)
+    x = v[0]
+    y = v[1]
+    TetrahedronPlacer(x,y)
+    
+bm.to_mesh(mesh)
+bm.free()
+    
+obj = bpy.data.objects.new("Tetrahedon/3D view", mesh)
+scene = bpy.context.scene
+scene.collection.objects.link(obj)
