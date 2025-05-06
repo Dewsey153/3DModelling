@@ -1,0 +1,85 @@
+import bpy
+import bmesh
+import numpy as np
+from mathutils import Vector
+
+def ensure_vector(v):
+    """Convert input to mathutils.Vector if it isn't already."""
+    if isinstance(v, Vector):
+        return v
+    elif isinstance(v, (list, tuple)):
+        return Vector(v)
+    elif isinstance(v, np.ndarray):
+        return Vector(v.tolist())
+    else:
+        raise TypeError(f"Unsupported vector type: {type(v)}")
+
+def draw_vector(vec, name="Vector", start = Vector((0,0,0))):
+    """Draw a vector starting at 'start', pointing in the direction of 'vec'."""
+    
+    start = ensure_vector(start)
+    vec = ensure_vector(vec)
+    
+    # Create a new mesh and object
+    mesh = bpy.data.meshes.new(name + "Mesh")
+    obj = bpy.data.objects.new(name, mesh)
+    
+    # Link object to scene
+    bpy.context.collection.objects.link(obj)
+    
+    # Build the mesh
+    bm = bmesh.new()
+    
+    # Create start and end vertices
+    v1 = bm.verts.new(start)
+    v2 = bm.verts.new(start + vec)
+    
+    # Create an edge between them
+    bm.edges.new((v1, v2))
+    
+    # Finalize
+    bm.to_mesh(mesh)
+    bm.free()
+    
+    return obj
+
+def draw_cross(vec1, vec2, name):
+    
+    vec1 = np.array(vec1)
+    vec2 = np.array(vec2)
+    
+    cross = np.cross(vec1, vec2)
+    
+    draw_vector(cross, name)
+
+def draw_dot(vec1, vec2, name):
+    vec1 = np.array(vec1)
+    vec2 = np.array(vec2)
+    dot = np.dot(vec1,vec2) * vec1
+    draw_vector(dot, name)
+    
+def draw_vadd(vecs, name = "vectorChain"):
+    origin = Vector((0,0,0))
+    for vi in vecs:
+        vi = ensure_vector(vi)
+        draw_vector(vi, name, origin)
+        origin = vi
+    
+# ========================
+# Example usage:
+
+import numpy as np
+
+# Start points and vectors can now be any of these:
+
+# Using mathutils.Vector
+vector1 = Vector((1, 2, 3))
+vector2 = np.array((1,0,2))
+
+# Works with all types:
+draw_vector(vector1, name="Vector1")
+draw_vector(vector2, name="Vector2")
+draw_cross(vector1, vector2, name = "cross1,2")
+# draw_dot(vector1,vector2, name = "dot1,2")
+vecs = [vector1, vector2]
+draw_vadd(vecs)
